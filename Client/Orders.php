@@ -1,6 +1,8 @@
 ﻿<?php
-require '../session_check.php';
-require '../db.php';
+ob_start();
+session_start();
+require_once '../session_check.php';
+require_once '../db.php';
 
 // Проверяем авторизацию клиента
 checkAuth('client');

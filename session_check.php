@@ -1,6 +1,8 @@
 <?php
-ob_start();
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    ob_start();
+    session_start();
+}
 
 // Если сессия пуста, но есть куки - восстанавливаем сессию
 if (!isset($_SESSION['login']) && isset($_COOKIE['user_login'])) {
