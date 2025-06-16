@@ -1,4 +1,9 @@
 ﻿<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+ob_start();
+
 require_once '../session_check.php';
 require_once '../db.php';
 
