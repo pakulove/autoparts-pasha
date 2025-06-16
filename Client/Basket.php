@@ -1,5 +1,4 @@
-﻿
-<?php 
+﻿<?php 
     session_start(); 
 ?>
 <html>
@@ -50,33 +49,94 @@
             </div>
         </header> 
         <hr width="1000" color="#7986cb"><br>
-        <!--<div class="container">
-			<table class="centered highlight">
-                <thead>
-                <tr>
-                    <th>Артикул</th>
-                    <th>Наименование</th>
-                    <th>Тип</th>
-                    <th>Цена(шт.)</th>
-                    <th>Количество</th>
-                    <th>Сумма</th>
-                </tr>
-                </thead>
-            </table>                                     ОТКРЫВАЕТСЯ КОГДА В КОРЗИНЕ ЕСТЬ ТОВАРЫ                                                                    
-		</div>-->  
-		<div class="row">
-			<div class="col s2">
-			</div>
-			<div class="col s8">
-				<font color="black"><h4>В вашей корзине пусто !</h4><br><br><h5>Чтобы сделать заказ выбирите нужные вам детали в </font><a class="indigo-text" href="Catalog.php"><u>каталоге автозапчастей</u></a>.<br><br>Перейти в <u><a class="indigo-text" href="Orders.php">текущие заказы<u></a>.</h5>
-			</div>
-			<div class="col s1">
-				<img width="180" src="../img/BASKET.png">
-			</div>
-		</div>
-		<hr width="1000" color="#7986cb"><br>
-			<center><a href="Orders.php" class="waves-effect waves-light btn-large indigo" style="width:270px"><i class="material-icons left">assignment_turned_in</i>Оформить заказ</a><p><a class="indigo-text" href="#"><u>или очистить корзину</u></a></p></center>
-		<br><br>
+        <?php
+        require_once '../session_check.php';
+        require_once '../db.php';
+        
+        // Проверяем авторизацию клиента
+        checkAuth('client');
+        
+        // Получаем user_id
+        $query = "SELECT id FROM users WHERE login = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $_SESSION['login']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        $user_id = $user['id'];
+        
+        $query = "SELECT c.*, a.name, a.type, a.cost 
+                 FROM cart c 
+                 JOIN autoparts a ON c.product_id = a.id 
+                 WHERE c.user_id = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            echo '<div class="container">
+                <table class="centered highlight">
+                    <thead>
+                        <tr>
+                            <th>Артикул</th>
+                            <th>Наименование</th>
+                            <th>Тип</th>
+                            <th>Цена</th>
+                            <th>Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+            
+            $total = 0;
+            while ($row = $result->fetch_assoc()) {
+                $total += $row['cost'];
+                echo "<tr>
+                    <td>{$row['product_id']}</td>
+                    <td>{$row['name']}</td>
+                    <td>{$row['type']}</td>
+                    <td>{$row['cost']}</td>
+                    <td>
+                        <button onclick='removeFromCart({$row['id']})' class='btn-floating btn-small waves-effect waves-light red'>
+                            <i class='material-icons'>delete</i>
+                        </button>
+                    </td>
+                </tr>";
+            }
+            
+            echo "</tbody>
+                </table>
+                <div class='row'>
+                    <div class='col s12'>
+                        <h4>Итого: {$total} руб.</h4>
+                    </div>
+                </div>
+            </div>";
+        } else {
+            echo '<div class="row">
+                <div class="col s2"></div>
+                <div class="col s8">
+                    <font color="black"><h4>В вашей корзине пусто !</h4><br><br>
+                    <h5>Чтобы сделать заказ выберите нужные вам детали в </font>
+                    <a class="indigo-text" href="Catalog.php"><u>каталоге автозапчастей</u></a>.<br><br>
+                    Перейти в <u><a class="indigo-text" href="Orders.php">текущие заказы</u></a>.</h5>
+                </div>
+                <div class="col s1">
+                    <img width="180" src="../img/BASKET.png">
+                </div>
+            </div>';
+        }
+        ?>
+        <hr width="1000" color="#7986cb"><br>
+        <?php if (isset($_SESSION['login']) && $_SESSION['type'] == 'client' && $result->num_rows > 0): ?>
+            <center>
+                <a href="Orders.php" class="waves-effect waves-light btn-large indigo" style="width:270px">
+                    <i class="material-icons left">assignment_turned_in</i>Оформить заказ
+                </a>
+                <p><a class="indigo-text" href="#" onclick="clearCart()"><u>или очистить корзину</u></a></p>
+            </center>
+        <?php endif; ?>
+        <br><br>
 		<footer class="page-footer indigo lighten-2">
 			<div class="container">
 				<div class="row">
@@ -114,6 +174,58 @@
 				</div>
 			</div>
 		</footer>
-		<script src="main.js"></script>
+		<script>
+		function updateQuantity(cartId, change) {
+			fetch('update_cart.php', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				body: 'id=' + cartId + '&change=' + change
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					location.reload();
+				} else {
+					M.toast({html: data.message, classes: 'red'});
+				}
+			});
+		}
+
+		function removeFromCart(cartId) {
+			fetch('remove_from_cart.php', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				body: 'id=' + cartId
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					location.reload();
+				} else {
+					M.toast({html: data.message, classes: 'red'});
+				}
+			});
+		}
+
+		function clearCart() {
+			if (confirm('Вы уверены, что хотите очистить корзину?')) {
+				fetch('clear_cart.php', {
+					method: 'POST'
+				})
+				.then(response => response.json())
+				.then(data => {
+					if (data.success) {
+						location.reload();
+					} else {
+						M.toast({html: data.message, classes: 'red'});
+					}
+				});
+			}
+		}
+		</script>
 	</body>
 </html>

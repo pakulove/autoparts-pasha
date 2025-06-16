@@ -1,6 +1,10 @@
-﻿
-<?php 
-    session_start(); 
+﻿<?php
+require_once '../session_check.php';
+require_once '../db.php';
+
+// Проверяем авторизацию клиента
+checkAuth('client');
+
 ?>
 <html>
     <head>

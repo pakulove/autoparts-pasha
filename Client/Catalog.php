@@ -1,6 +1,10 @@
-﻿
-<?php 
-    session_start(); 
+﻿<?php
+require_once '../session_check.php';
+require_once '../db.php';
+
+// Проверяем авторизацию клиента
+checkAuth('client');
+
 ?>
 <html>
     <head>
@@ -79,6 +83,9 @@
 						  <th>Тип</th>
 						  <th>Описание</th>
 						  <th>Цена(р.)</th>
+						  <?php if (isset($_SESSION['login']) && $_SESSION['type'] == 'client'): ?>
+						  <th>Действие</th>
+						  <?php endif; ?>
 					  </tr>
 					</thead>
 					<tbody onclick='select_autopart(event)'>
@@ -87,15 +94,20 @@
                     $autoparts = get_all();
 					
                      foreach ($autoparts as $autopart) {
-                        
-					
                         echo "<tr id='autoparts-{$autopart['id']}'>
                             <td>{$autopart['id']}</td>
                             <td>{$autopart['name']}</td>
                             <td>{$autopart['type']}</td>
                             <td>{$autopart['description']}</td>
-                            <td>{$autopart['cost']}</td>
-                        </tr>";
+                            <td>{$autopart['cost']}</td>";
+                        if (isset($_SESSION['login']) && $_SESSION['type'] == 'client') {
+                            echo "<td>
+                                <button onclick='addToCart({$autopart['id']})' class='btn-floating btn-small waves-effect waves-light indigo'>
+                                    <i class='material-icons'>add_shopping_cart</i>
+                                </button>
+                            </td>";
+                        }
+                        echo "</tr>";
 					 }
                 ?>
 					</tbody>
@@ -150,6 +162,30 @@
 				</div>
 			</div>
 		</footer>
-		<script src="main.js"></script>
+		<script>
+		function addToCart(productId) {
+			event.stopPropagation(); // Предотвращаем всплытие события клика
+			
+			fetch('add_to_cart.php', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				body: 'id=' + productId
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					M.toast({html: data.message, classes: 'green'});
+				} else {
+					M.toast({html: data.message, classes: 'red'});
+				}
+			})
+			.catch(error => {
+				console.error('Error:', error);
+				M.toast({html: 'Произошла ошибка при добавлении в корзину', classes: 'red'});
+			});
+		}
+		</script>
 	</body>
 </html>

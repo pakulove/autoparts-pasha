@@ -1,10 +1,10 @@
-﻿
-<?php 
-    session_start(); 
-    if (empty($_SESSION['id']) || $_SESSION['type'] == 'master' || $_SESSION['type'] == 'seller'){
-    header("Location:../authmain.php");
-    exit();
-    }
+﻿<?php
+require_once '../session_check.php';
+require_once '../db.php';
+
+// Проверяем авторизацию клиента
+checkAuth('client');
+
 ?>
 <html>
     <head>

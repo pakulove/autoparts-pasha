@@ -1,65 +1,47 @@
 <?php
-    session_start();
-    
-    if (isset($_POST['login'])) {
-        $login=$_POST['login'];
-    }
-    
-    if (isset($_POST['pass'])) {
-        $pass=$_POST['pass'];
-    }
-    
-    if (empty($login) or empty($pass)) {
-        exit("Данные не введены!!!");
-    }
-    
-    $login=stripcslashes($login);
-    $login=htmlspecialchars($login);
-    $login=trim($login);
-    $pass=stripcslashes($pass);
-    $pass=htmlspecialchars($pass);
-    $pass=trim($pass);
-        
-    define("HOST", "localhost");
-    define("USER", "root");
-    define("PASS", "");
-    define("DB", "Clients_db");
-    
-    $conn = mysqli_connect(HOST, USER, PASS, DB);
-    if (!$conn) die('Не удалось подключиться к БД!');
-    
-    
-    $query ="SELECT * FROM users WHERE login = '{$login}'";
-    $result = mysqli_query($conn, $query);
-    $user = mysqli_fetch_assoc($result);
-    
-    
-    if (!empty($user)) {
+session_start();
+require 'db.php';
 
-        if ($pass == $user['pass']) {
-            $_SESSION['id']=$user['id'];
-            $_SESSION['login'] =$user['login'];
-            $_SESSION['type'] =$user['type'];
-            
-            if ($user['type'] == 'client'){
-            header("Location:Client/Cabinet.php");
-            exit();
-            }
-            
-            if ($user['type'] == 'seller'){
-            header("Location:Seller/Klients.php");
-            exit();
-            }
-            
-            if ($user['type'] == 'master'){
-            header("Location:Master/Catalog.php");
-            exit();
-            }
-    } else {
-        echo 'Пароль не верный';
-    }
-} else {
-    echo 'Никого не нашли';
-}
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $login = $_POST['login'];
+    $pass = $_POST['pass'];
     
+    $query = "SELECT * FROM users WHERE login = ? AND pass = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ss", $login, $pass);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $user = $result->fetch_assoc();
+        $_SESSION['login'] = $login;
+        $_SESSION['type'] = $user['type'];
+        
+        // Устанавливаем куки на 30 дней
+        setcookie('user_login', $login, time() + (86400 * 30), "/");
+        setcookie('user_type', $user['type'], time() + (86400 * 30), "/");
+        
+        // Определяем страницу для перенаправления в зависимости от типа пользователя
+        $redirect = '';
+        switch($user['type']) {
+            case 'client':
+                $redirect = 'Client/Main.php';
+                break;
+            case 'master':
+                $redirect = 'Master/Main.php';
+                break;
+            case 'seller':
+                $redirect = 'Seller/Main.php';
+                break;
+        }
+        
+        echo json_encode([
+            'success' => true, 
+            'message' => 'Авторизация успешна',
+            'redirect' => $redirect
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Неверный логин или пароль']);
+    }
+}
 ?> 

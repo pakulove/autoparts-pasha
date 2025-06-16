@@ -1,4 +1,23 @@
+<?php
+session_start();
+require_once 'session_check.php';
 
+// Если пользователь уже авторизован, перенаправляем в соответствующий раздел
+if (isset($_SESSION['login'])) {
+    switch($_SESSION['type']) {
+        case 'client':
+            header('Location: Client/Main.php');
+            break;
+        case 'master':
+            header('Location: Master/Main.php');
+            break;
+        case 'seller':
+            header('Location: Seller/Main.php');
+            break;
+    }
+    exit;
+}
+?>
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -45,7 +64,6 @@
             </div>
         </header> 
     <?php
-
         if (empty($_SESSION['login']) or
             empty($_SESSION['id'])) {
     ?>
@@ -55,52 +73,47 @@
             <div class="col s3">
             </div>
             <div class="col s6">
-                <form action="auth.php" method="post" class="mx-auto" style="width:100%">
-                    <p>
-                        <div class="form-group">
-                         <div class="input-field">
-                            <i class="material-icons prefix ">account_circle</i>
-                        <label for='login'>Логин:</label>
-                        <input
-                            id='login'
-                            name='login'
-                            type='text'
-                            size='20'
-                            maxlength='25'
-                            placeholder="Введите логин"
-                            class="form-control">
-                        </input>
+                <div class="card indigo lighten-5">
+                    <div class="card-content">
+                        <span class="card-title center-align"><h4>Авторизация</h4></span>
+                        <?php if (isset($_SESSION['message'])): ?>
+                            <div class="card-panel red lighten-4">
+                                <?php 
+                                echo $_SESSION['message'];
+                                unset($_SESSION['message']);
+                                ?>
+                            </div>
+                        <?php endif; ?>
+                        <form onsubmit="submitForm(); return false;">
+                            <div class="input-field">
+                                <i class="material-icons prefix">account_circle</i>
+                                <input id="login" name="login" type="text" class="validate" required>
+                                <label for="login">Логин</label>
+                            </div>
+                            <div class="input-field">
+                                <i class="material-icons prefix">fingerprint</i>
+                                <input id="pass" name="pass" type="password" class="validate" required>
+                                <label for="pass">Пароль</label>
+                            </div>
+                            <div class="center-align">
+                                <button type="submit" class="waves-effect waves-light btn-large indigo">
+                                    <i class="material-icons left">face</i>Войти
+                                </button>
+                            </div>
+                        </form>
+                        <div class="center-align" style="margin-top: 20px;">
+                            <a href="register.php" class="waves-effect waves-light btn indigo">
+                                <i class="material-icons left">person_add</i>Зарегистрироваться
+                            </a>
                         </div>
-                        </div>
-                    </p>
-                    <br>
-                    <p>
-                        <div class="form-group">
-                        <div class="input-field">
-                        <i class="material-icons prefix ">fingerprint</i>
-                        <label for='pass'>Пароль:</label>
-                        <input
-                            id='pass'
-                            name='pass'
-                            type='password'
-                            size='20'
-                            maxlength='25'
-                            placeholder="Введите пароль"
-                            class="form-control">
-                        </input>
-                        </div><br><br>
-                    <center><button type='submit' value='Войти' class="waves-effect waves-light btn-large indigo" style="width:275px"><i class="material-icons left">face</i>Войти</button></center>
-                    </p>
-                </form>
-            </div>
+                    </div>
+                </div>
             </div>
             <div class="col s3">
             </div>
         </div>
     </div>
     <?php
-        } else {
-            header("Location:Client/Cabinet.php");
         }
     ?>
 <footer class="page-footer  indigo lighten-2">
@@ -141,4 +154,86 @@
 			</div>
 		</footer>
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded');
+        
+        // Initialize tabs
+        var tabs = document.querySelectorAll('.tabs');
+        var tabsInstance = M.Tabs.init(tabs);
+        console.log('Tabs initialized');
+
+        // Initialize form validation
+        var inputs = document.querySelectorAll('input');
+        inputs.forEach(function(input) {
+            M.updateTextFields();
+        });
+        console.log('Inputs initialized');
+
+        // Add click handlers for form submission
+        var registerForm = document.querySelector('form[action="register.php"]');
+        if (registerForm) {
+            console.log('Register form found');
+            registerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('Form submitted');
+                
+                var formData = new FormData(this);
+                fetch('register.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Response:', data);
+                    M.toast({html: data.message});
+                    if (data.success) {
+                        window.location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    M.toast({html: 'Произошла ошибка при регистрации'});
+                });
+            });
+        }
+
+        // Activate registration tab if there's an error message
+        <?php if (isset($_SESSION['message'])) { ?>
+            var tabsInstance = M.Tabs.getInstance(document.querySelector('.tabs'));
+            if (tabsInstance) {
+                tabsInstance.select('register');
+            }
+            M.toast({html: '<?php echo $_SESSION['message']; ?>'});
+            <?php unset($_SESSION['message']); ?>
+        <?php } ?>
+    });
+
+function submitForm() {
+    var login = document.getElementById('login').value;
+    var pass = document.getElementById('pass').value;
+    
+    fetch('auth.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'login=' + encodeURIComponent(login) + '&pass=' + encodeURIComponent(pass)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            M.toast({html: data.message, classes: 'green'});
+            // Перенаправляем на нужную страницу
+            if (data.redirect) {
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1000);
+            }
+        } else {
+            M.toast({html: data.message, classes: 'red'});
+        }
+    });
+}
+</script>
 </html>

@@ -1,19 +1,14 @@
 <?php
-require 'db.php';
+require_once '../db.php';
 
 function get_all() {
-    $query = "SELECT * FROM `autoparts`";
-    
-    $conn = open_conn();
-    $result = mysqli_query($conn, $query);
-    if (!$result) die('ERROR: ' . mysqli_error);
-    
-    $autoparts = [];
-    while ($row = mysqli_fetch_assoc($result)) {
+    global $conn;
+    $query = "SELECT * FROM autoparts";
+    $result = $conn->query($query);
+    $autoparts = array();
+    while ($row = $result->fetch_assoc()) {
         $autoparts[] = $row;
     }
-    
-    close_conn($conn);
     return $autoparts;
 }
 
