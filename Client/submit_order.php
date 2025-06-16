@@ -54,11 +54,14 @@ try {
               WHERE c.user_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ii", $user_id, $user_id);
-    $stmt->execute();
+    
+    if (!$stmt->execute()) {
+        throw new Exception("Ошибка при создании заказа: " . $stmt->error);
+    }
+    
     $order_id = $conn->insert_id;
-
     if (!$order_id) {
-        throw new Exception("Ошибка при создании заказа");
+        throw new Exception("Не удалось получить ID заказа");
     }
 
     // Добавляем товары в заказ
@@ -69,17 +72,30 @@ try {
               WHERE c.user_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ii", $order_id, $user_id);
-    $stmt->execute();
+    
+    if (!$stmt->execute()) {
+        throw new Exception("Ошибка при добавлении товаров в заказ: " . $stmt->error);
+    }
 
     // Очищаем корзину
     $query = "DELETE FROM cart WHERE user_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $user_id);
-    $stmt->execute();
+    
+    if (!$stmt->execute()) {
+        throw new Exception("Ошибка при очистке корзины: " . $stmt->error);
+    }
 
     $conn->commit();
-    echo json_encode(['success' => true, 'message' => 'Заказ успешно оформлен']);
+    echo json_encode([
+        'success' => true, 
+        'message' => 'Заказ успешно оформлен',
+        'order_id' => $order_id
+    ]);
 } catch (Exception $e) {
     $conn->rollback();
-    echo json_encode(['success' => false, 'message' => 'Ошибка при оформлении заказа: ' . $e->getMessage()]);
+    echo json_encode([
+        'success' => false, 
+        'message' => 'Ошибка при оформлении заказа: ' . $e->getMessage()
+    ]);
 } 

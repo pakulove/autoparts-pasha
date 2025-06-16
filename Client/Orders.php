@@ -129,11 +129,16 @@ while ($item = $cart_items->fetch_assoc()) {
                 if (data.success) {
                     M.toast({html: data.message, classes: 'green'});
                     setTimeout(() => {
-                        window.location.href = 'Main.php';
+                        window.location.href = 'Cabinet.php';
                     }, 2000);
                 } else {
                     M.toast({html: data.message, classes: 'red'});
+                    console.error('Ошибка:', data.message);
                 }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                M.toast({html: 'Произошла ошибка при оформлении заказа', classes: 'red'});
             });
         }
         </script>
