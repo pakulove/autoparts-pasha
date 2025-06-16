@@ -1,11 +1,14 @@
+version: "3.8"
 services:
   web:
     build: .
     ports:
       - "8088:80"
     volumes:
-      - ./autoparts:/srv/httpd/autoparts
+      # монтируем корень проекта в /srv/http
+      - ./:/srv/http
       - ./httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+
   db:
     image: mariadb:10.6
     environment:
