@@ -1,8 +1,8 @@
 <?php
 
-define("HOST", "localhost");
+define("HOST", "db");
 define("USER", "root");
-define("PASS", "");
+define("PASS", "admin");
 define("DB", "Clients_db");
 
 function open_conn() {
