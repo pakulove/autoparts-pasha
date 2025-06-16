@@ -1,7 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+ob_start();
+session_start();
 
 header('Content-Type: application/json');
 
