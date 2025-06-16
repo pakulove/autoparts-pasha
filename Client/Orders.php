@@ -5,22 +5,6 @@ require '../db.php';
 // Проверяем авторизацию клиента
 checkAuth('client');
 
-// Получаем данные пользователя
-$query = "SELECT c.* FROM clients c 
-          JOIN users u ON c.email = u.login 
-          WHERE u.login = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("s", $_SESSION['login']);
-$stmt->execute();
-$result = $stmt->get_result();
-$client = $result->fetch_assoc();
-
-// Если данных клиента нет, перенаправляем на страницу профиля
-if (!$client) {
-    header('Location: Cabinet.php?error=no_data');
-    exit;
-}
-
 // Получаем товары из корзины
 $query = "SELECT c.*, a.name, a.type, a.cost 
           FROM cart c 
@@ -31,6 +15,12 @@ $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $_SESSION['login']);
 $stmt->execute();
 $cart_items = $stmt->get_result();
+
+// Если корзина пуста, перенаправляем на страницу заказов
+if ($cart_items->num_rows === 0) {
+    header('Location: Cabinet.php');
+    exit;
+}
 
 $total = 0;
 while ($item = $cart_items->fetch_assoc()) {
@@ -55,7 +45,7 @@ while ($item = $cart_items->fetch_assoc()) {
                     <li><a href="Catalog.php"><i class="material-icons left">grid_on</i>Каталог автозапчастей</a></li>
                     <li><a href="Basket.php"><i class="material-icons left">shopping_cart</i>Корзина</a></li>
                     <li><a href="Contacts.php"><i class="material-icons left">contacts</i>Контакты</a></li>
-                    <li><a href="../authmain.php"><i class="material-icons left">person</i>Личный кабинет</a></li>
+                    <li><a href="../authout.php"><i class="material-icons left">exit_to_app</i>Выйти из кабинета</a></li>
                 </ul>
             </div>
         </nav>
@@ -64,18 +54,6 @@ while ($item = $cart_items->fetch_assoc()) {
             <h3 class="center">Оформление заказа</h3>
             
             <div class="row">
-                <div class="col s12 m6">
-                    <div class="card">
-                        <div class="card-content">
-                            <span class="card-title">Данные для доставки</span>
-                            <p>ФИО: <?php echo $client['surname'] . ' ' . $client['name'] . ' ' . $client['patronymic']; ?></p>
-                            <p>Телефон: <?php echo $client['phone']; ?></p>
-                            <p>Адрес: <?php echo $client['address']; ?></p>
-                            <p>Email: <?php echo $client['email']; ?></p>
-                        </div>
-                    </div>
-                </div>
-                
                 <div class="col s12 m6">
                     <div class="card">
                         <div class="card-content">
@@ -122,10 +100,19 @@ while ($item = $cart_items->fetch_assoc()) {
         <script>
         function submitOrder() {
             fetch('submit_order.php', {
-                method: 'POST'
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Response:', data); // Добавляем для отладки
                 if (data.success) {
                     M.toast({html: data.message, classes: 'green'});
                     setTimeout(() => {

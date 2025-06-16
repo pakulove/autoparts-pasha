@@ -51,7 +51,7 @@
                         <font size="+2" color="red">•</font> Вс: выходной
                         <br>
                         <br>
-                        <u><b><i class="material-icons left">place</i><a class="indigo-text" href="https://2gis.ru/perm/search/%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC%D0%B0%20%D0%B3%D0%BE%D1%80%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE%2C%2021?queryState=center%2F56.252258%2C58.014583%2Fzoom%2F16">Пермь ул.Максима Горького 21<a></b></p></u>
+                        <u><b><i class="material-icons left">place</i><a class="indigo-text" href="https://2gis.ru/perm/search/%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC%D0%B0%20%D0%B3%D0%BE%D1%80%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE%2C%2021?queryState=center%2F56.252258%2C58.014583%2Fzoom%2F16">Тюмень ул.Максима Горького 21<a></b></p></u>
 					</div>
             </div>
             
@@ -88,11 +88,11 @@
 						Банковские реквизиты</b>
 					</div>
 					<div class="col s10">
-						ИП Синицин Мирослав Александрович<br><br>
+						ИП Караульных Павел Иванович<br><br>
 						312200440688 / -<br><br>
 						304312223200019<br><br>
 						309850,Белгородская обл.,г. Алексеевка, пер. Чапаева, д.29<br><br>
-						г,Пермь ул.Максима Горького 21<br><br>
+						г,Тюмень ул.Максима Горького 21<br><br>
 						+7 (951) 76-69-003<br><br>
 						р/с 40802810507130001004 в БЕЛГОРОДСКОЕ ОТДЕЛЕНИЕ N8592 ПАО СБЕРБАНК, к/с 30101810100000000633, БИК 041403633
 					</div>
@@ -212,14 +212,14 @@
 				<div class="container">
 					<div class="row">
 						<div class="col s2">
-							© "СпецАвтоПром", 2019
+							© "СпецАвтоПром", 2025
 							<br>
 							<a href="http://parts-soft.ru">Разработка sma8800@mail.ru</a>
 						</div>
 						<div class="col s8">
 						</div>
 						<div class="col s2">
-							<u><b><i class="material-icons left">place</i><a class="indigo-text white-text" href="https://2gis.ru/perm/search/%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC%D0%B0%20%D0%B3%D0%BE%D1%80%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE%2C%2021?queryState=center%2F56.252258%2C58.014583%2Fzoom%2F16">Пермь ул.Максима Горького 21<a></b></u>
+							<u><b><i class="material-icons left">place</i><a class="indigo-text white-text" href="https://2gis.ru/perm/search/%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC%D0%B0%20%D0%B3%D0%BE%D1%80%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE%2C%2021?queryState=center%2F56.252258%2C58.014583%2Fzoom%2F16">Тюмень ул.Максима Горького 21<a></b></u>
 						</div>
 					</div>
 				</div>

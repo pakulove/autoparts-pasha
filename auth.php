@@ -17,6 +17,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['login'] = $login;
         $_SESSION['type'] = $user['type'];
         
+        // Если пользователь - клиент, проверяем наличие записи в таблице clients
+        if ($user['type'] == 'client') {
+            $query = "SELECT * FROM clients WHERE email = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param("s", $login);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            // Если записи нет, создаем пустую запись
+            if ($result->num_rows == 0) {
+                $query = "INSERT INTO clients (email) VALUES (?)";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("s", $login);
+                $stmt->execute();
+            }
+        }
+        
         // Устанавливаем куки на 30 дней
         setcookie('user_login', $login, time() + (86400 * 30), "/");
         setcookie('user_type', $user['type'], time() + (86400 * 30), "/");

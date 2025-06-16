@@ -1,10 +1,19 @@
 ﻿<?php
-require_once '../session_check.php';
-require_once '../db.php';
+require '../session_check.php';
+require '../db.php';
 
 // Проверяем авторизацию клиента
 checkAuth('client');
 
+// Получаем заказы пользователя
+$query = "SELECT o.* FROM orders o 
+          JOIN users u ON o.user_id = u.id 
+          WHERE u.login = ? 
+          ORDER BY o.created_at DESC";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $_SESSION['login']);
+$stmt->execute();
+$orders = $stmt->get_result();
 ?>
 <html>
     <head>
@@ -28,7 +37,7 @@ checkAuth('client');
 				<li><a href="Catalog.php"><i class="material-icons left">grid_on</i>Каталог автозапчастей</a></li>
 				<li><a href="Basket.php"><i class="material-icons left">shopping_cart</i>Корзина</a></li>
 				<li><a href="Contacts.php"><i class="material-icons left">contacts</i>Контакты</a></li>
-				<li><a href="../authmain.php"><i class="material-icons left">person</i>Личный кабинет</a></li>
+				<li><a href="../authout.php"><i class="material-icons left">exit_to_app</i>Выйти из кабинета</a></li>
 			  </ul>
 			</div>
 		</nav>
@@ -51,7 +60,7 @@ checkAuth('client');
                         <br>
                         <br>
                         <b>
-                        <u><b><i class="material-icons left">place</i><a class="indigo-text" href="https://2gis.ru/perm/search/%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC%D0%B0%20%D0%B3%D0%BE%D1%80%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE%2C%2021?queryState=center%2F56.252258%2C58.014583%2Fzoom%2F16">Пермь ул.Максима Горького 21<a></b></p></u>
+                        <u><b><i class="material-icons left">place</i><a class="indigo-text" href="https://2gis.ru/perm/search/%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC%D0%B0%20%D0%B3%D0%BE%D1%80%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE%2C%2021?queryState=center%2F56.252258%2C58.014583%2Fzoom%2F16">Тюмень ул.Максима Горького 21<a></b></p></u>
 					</div>
             </div>
         </header> 
@@ -75,30 +84,59 @@ checkAuth('client');
 		</div>
 		<div class="container">
             <h3><font color="black">Ваши заказы:</h3></font><br>
+            <?php if ($orders->num_rows > 0): ?>
             <table class="centered highlight">
                 <thead>
                     <tr>
                         <th>Дата заказа</th>
                         <th>Номер заказа</th>
-                        <th>Доставка</th>
-                        <th>Статус </th>
+                        <th>Сумма</th>
+                        <th>Статус</th>
                     </tr>
                 </thead>
                 <tbody>
+                    <?php while ($order = $orders->fetch_assoc()): ?>
                     <tr>
-                        <td>02.02.2019</td>
-                        <td>067234</td>
-                        <td>Ул. Максима Горького 21</td>
-                        <td><font color="red">Не оплачен</font><br><br><a class="waves-effect waves-light btn indigo" style="width:180px" onclick="M.toast({html: 'Благодарим за покупку!'})"><i class="material-icons left">credit_card</i>Оплатить</a></td> 
+                        <td><?php echo date('d.m.Y', strtotime($order['created_at'])); ?></td>
+                        <td><?php echo $order['id']; ?></td>
+                        <td><?php echo $order['total_amount']; ?> руб.</td>
+                        <td>
+                            <?php 
+                            $status_color = '';
+                            $status_text = '';
+                            switch($order['status']) {
+                                case 'new':
+                                    $status_color = 'orange';
+                                    $status_text = 'Новый';
+                                    break;
+                                case 'processing':
+                                    $status_color = 'blue';
+                                    $status_text = 'В обработке';
+                                    break;
+                                case 'completed':
+                                    $status_color = 'green';
+                                    $status_text = 'Выполнен';
+                                    break;
+                                case 'cancelled':
+                                    $status_color = 'red';
+                                    $status_text = 'Отменен';
+                                    break;
+                            }
+                            ?>
+                            <font color="<?php echo $status_color; ?>"><?php echo $status_text; ?></font>
+                        </td>
                     </tr>
-                    <tr>
-                        <td>02.12.2018</td>
-                        <td>056892 </td>
-                        <td>Самовывоз</td>
-                        <td><font color="green">Выполнен</font></td>
-                    </tr>
+                    <?php endwhile; ?>
                 </tbody>
             </table>
+            <?php else: ?>
+            <div class="center">
+                <h5>У вас пока нет заказов</h5>
+                <a href="Catalog.php" class="btn-large waves-effect waves-light indigo">
+                    <i class="material-icons left">shopping_cart</i>Перейти в каталог
+                </a>
+            </div>
+            <?php endif; ?>
         </div><br><br><br><br>
        
         <hr width="1000" color="#7986cb"><br>
@@ -128,14 +166,14 @@ checkAuth('client');
 				<div class="container">
 					<div class="row">
 						<div class="col s2">
-							© "СпецАвтоПром", 2019
+							© "СпецАвтоПром", 2025
 							<br>
 							<a href="http://parts-soft.ru">Разработка sma8800@mail.ru</a>
 						</div>
 						<div class="col s8">
 						</div>
 						<div class="col s2">
-							<u><b><i class="material-icons left">place</i><a class="indigo-text white-text" href="https://2gis.ru/perm/search/%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC%D0%B0%20%D0%B3%D0%BE%D1%80%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE%2C%2021?queryState=center%2F56.252258%2C58.014583%2Fzoom%2F16">Пермь ул.Максима Горького 21<a></b></u>
+							<u><b><i class="material-icons left">place</i><a class="indigo-text white-text" href="https://2gis.ru/perm/search/%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC%D0%B0%20%D0%B3%D0%BE%D1%80%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE%2C%2021?queryState=center%2F56.252258%2C58.014583%2Fzoom%2F16">Тюмень ул.Максима Горького 21<a></b></u>
 						</div>
 					</div>
 				</div>
