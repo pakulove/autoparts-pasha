@@ -1,4 +1,6 @@
 ﻿<?php
+ob_start();
+session_start();
 require '../session_check.php';
 require '../db.php';
 
