@@ -1,9 +1,13 @@
 ﻿<?php
-require_once '../session_check.php';
-require_once '../db.php';
+require '../session_check.php';
+require '../db.php';
 
 // Проверяем авторизацию клиента
 checkAuth('client');
+
+// Получаем список автозапчастей
+$query = "SELECT * FROM autoparts ORDER BY name";
+$result = $conn->query($query);
 
 ?>
 <html>

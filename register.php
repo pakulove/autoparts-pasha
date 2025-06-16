@@ -1,74 +1,95 @@
 <?php
 session_start();
-require_once __DIR__ . '/db.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+require 'db.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Очищаем буфер вывода
+    ob_clean();
+    
     $login = trim($_POST['login']);
-    $pass = trim($_POST['pass']);
-    $pass_confirm = trim($_POST['pass_confirm']);
+    $password = trim($_POST['password']);
+    $password_confirm = trim($_POST['password_confirm']);
 
-    if (empty($login) || empty($pass) || empty($pass_confirm)) {
-        $_SESSION['message'] = 'Все поля обязательны для заполнения!';
-        header('Location: register.php');
-        exit();
+    // Проверки
+    if (empty($login) || empty($password) || empty($password_confirm)) {
+        echo json_encode(['success' => false, 'message' => 'Все поля обязательны для заполнения']);
+        exit;
     }
 
-    if (strlen($pass) < 6) {
-        $_SESSION['message'] = 'Пароль должен быть не менее 6 символов!';
-        header('Location: register.php');
-        exit();
+    if ($password !== $password_confirm) {
+        echo json_encode(['success' => false, 'message' => 'Пароли не совпадают']);
+        exit;
     }
 
-    if ($pass !== $pass_confirm) {
-        $_SESSION['message'] = 'Пароли не совпадают!';
-        header('Location: register.php');
-        exit();
+    if (strlen($password) < 6) {
+        echo json_encode(['success' => false, 'message' => 'Пароль должен быть не менее 6 символов']);
+        exit;
     }
 
     try {
-        // Check if login already exists
-        $stmt = $connect->prepare("SELECT id FROM users WHERE login = ?");
+        // Проверяем, не занят ли логин
+        $query = "SELECT * FROM users WHERE login = ?";
+        $stmt = $conn->prepare($query);
         if (!$stmt) {
-            throw new Exception("Ошибка подготовки запроса: " . $connect->error);
+            throw new Exception("Ошибка подготовки запроса проверки логина: " . $conn->error);
         }
         
         $stmt->bind_param("s", $login);
         if (!$stmt->execute()) {
-            throw new Exception("Ошибка выполнения запроса: " . $stmt->error);
+            throw new Exception("Ошибка выполнения запроса проверки логина: " . $stmt->error);
         }
         
-        $stmt->store_result();
-        if ($stmt->num_rows > 0) {
-            $_SESSION['message'] = 'Пользователь с таким логином уже существует!';
-            header('Location: register.php');
-            exit();
+        $result = $stmt->get_result();
+        if ($result->num_rows > 0) {
+            echo json_encode(['success' => false, 'message' => 'Этот логин уже занят']);
+            exit;
         }
         $stmt->close();
 
-        // Insert new user with plain password (as per database structure)
-        $stmt = $connect->prepare("INSERT INTO users (login, pass, type) VALUES (?, ?, 'client')");
+        // Добавляем пользователя
+        $query = "INSERT INTO users (login, pass, type) VALUES (?, ?, 'client')";
+        $stmt = $conn->prepare($query);
         if (!$stmt) {
-            throw new Exception("Ошибка подготовки запроса: " . $connect->error);
+            throw new Exception("Ошибка подготовки запроса добавления пользователя: " . $conn->error);
         }
         
-        $stmt->bind_param("ss", $login, $pass);
+        $stmt->bind_param("ss", $login, $password);
         if (!$stmt->execute()) {
-            throw new Exception("Ошибка выполнения запроса: " . $stmt->error);
+            throw new Exception("Ошибка выполнения запроса добавления пользователя: " . $stmt->error);
         }
 
-        $_SESSION['message'] = 'Регистрация успешна! Теперь вы можете войти.';
-        header('Location: authmain.php');
+        $user_id = $conn->insert_id;
+        $stmt->close();
+
+        // Создаем запись в таблице clients
+        $query = "INSERT INTO clients (email) VALUES (?)";
+        $stmt = $conn->prepare($query);
+        if (!$stmt) {
+            throw new Exception("Ошибка подготовки запроса добавления клиента: " . $conn->error);
+        }
+        
+        $stmt->bind_param("s", $login);
+        if (!$stmt->execute()) {
+            throw new Exception("Ошибка выполнения запроса добавления клиента: " . $stmt->error);
+        }
+
+        echo json_encode(['success' => true, 'message' => 'Регистрация успешна']);
         
     } catch (Exception $e) {
-        $_SESSION['message'] = 'Ошибка при регистрации: ' . $e->getMessage();
-        header('Location: register.php');
+        error_log("Ошибка при регистрации: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Ошибка при регистрации: ' . $e->getMessage()]);
     } finally {
-        if (isset($stmt)) {
+        if (isset($stmt) && $stmt) {
             $stmt->close();
         }
-        $connect->close();
+        if (isset($conn) && $conn) {
+            $conn->close();
+        }
     }
-    exit();
+    exit;
 }
 ?>
 <!DOCTYPE HTML>
@@ -110,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 ?>
                             </div>
                         <?php endif; ?>
-                        <form action="register.php" method="post">
+                        <form id="registerForm">
                             <div class="input-field">
                                 <i class="material-icons prefix">account_circle</i>
                                 <input id="login" name="login" type="text" class="validate" required>
@@ -118,13 +139,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
                             <div class="input-field">
                                 <i class="material-icons prefix">fingerprint</i>
-                                <input id="pass" name="pass" type="password" class="validate" required>
-                                <label for="pass">Пароль</label>
+                                <input id="password" name="password" type="password" class="validate" required>
+                                <label for="password">Пароль</label>
                             </div>
                             <div class="input-field">
                                 <i class="material-icons prefix">lock_outline</i>
-                                <input id="pass_confirm" name="pass_confirm" type="password" class="validate" required>
-                                <label for="pass_confirm">Повторите пароль</label>
+                                <input id="password_confirm" name="password_confirm" type="password" class="validate" required>
+                                <label for="password_confirm">Подтвердите пароль</label>
                             </div>
                             <div class="center-align">
                                 <button type="submit" class="waves-effect waves-light btn-large indigo">
@@ -149,6 +170,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             var inputs = document.querySelectorAll('input');
             inputs.forEach(function(input) {
                 M.updateTextFields();
+            });
+        });
+
+        $(document).ready(function() {
+            $('#registerForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                $.ajax({
+                    url: 'register.php',
+                    method: 'POST',
+                    data: $(this).serialize(),
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            M.toast({html: response.message, classes: 'green'});
+                            setTimeout(() => {
+                                window.location.href = 'authmain.php';
+                            }, 2000);
+                        } else {
+                            M.toast({html: response.message, classes: 'red'});
+                            console.error('Ошибка:', response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Ошибка AJAX:', error);
+                        console.error('Ответ сервера:', xhr.responseText);
+                        M.toast({html: 'Произошла ошибка при регистрации', classes: 'red'});
+                    }
+                });
             });
         });
     </script>
