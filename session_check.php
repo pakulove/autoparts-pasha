@@ -1,6 +1,8 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-    ob_start();
+    if (ob_get_level() == 0) {
+        ob_start();
+    }
     session_start();
 }
 

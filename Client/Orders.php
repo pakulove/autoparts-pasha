@@ -1,5 +1,7 @@
 ﻿<?php
-ob_start();
+if (ob_get_level() == 0) {
+    ob_start();
+}
 session_start();
 require_once '../session_check.php';
 require_once '../db.php';
