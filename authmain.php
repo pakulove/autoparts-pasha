@@ -1,5 +1,9 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+ob_start();
+
 require_once 'session_check.php';
 
 // Если пользователь уже авторизован, перенаправляем в соответствующий раздел
