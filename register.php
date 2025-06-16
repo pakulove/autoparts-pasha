@@ -6,8 +6,8 @@ ini_set('display_errors', 1);
 require 'db.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Очищаем буфер вывода
-    ob_clean();
+    // Удаляем ob_clean() и добавляем проверку заголовков
+    header('Content-Type: application/json');
     
     $login = trim($_POST['login']);
     $password = trim($_POST['password']);
