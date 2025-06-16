@@ -1,11 +1,9 @@
-version: "3.8"
 services:
   web:
     build: .
     ports:
       - "8088:80"
     volumes:
-      # монтируем корень проекта в /srv/http
       - ./:/srv/http
       - ./httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
 
@@ -19,5 +17,6 @@ services:
       - ./dump.sql:/docker-entrypoint-initdb.d/dump.sql:ro
     ports:
       - "3306:3306"
+
 volumes:
   db_data:
