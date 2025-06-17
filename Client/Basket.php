@@ -232,7 +232,12 @@ session_start();
 			}
 		}
 
-		let total = 0; // Делаем total глобальной переменной
+		let total = 0;
+		
+		// Вызываем updateCartDisplay при загрузке страницы
+		document.addEventListener('DOMContentLoaded', function() {
+			updateCartDisplay();
+		});
 		
 		function updateCartDisplay() {
 			const cartItems = document.getElementById('cartItems');
@@ -280,7 +285,11 @@ session_start();
 		}
 
 		function placeOrder() {
-			if (total === 0) {
+			const cart = JSON.parse(localStorage.getItem('cart')) || [];
+			console.log('Cart contents:', cart);
+			console.log('Total value:', total);
+			
+			if (!cart || cart.length === 0) {
 				M.toast({html: 'Корзина пуста', classes: 'red'});
 				return;
 			}
