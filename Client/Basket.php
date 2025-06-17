@@ -322,18 +322,28 @@ session_start();
 										const result = JSON.parse(response);
 										if (result.success) {
 											M.toast({html: decodeURIComponent(escape(result.message)), classes: 'green'});
-							M.toast({html: decodeURIComponent(escape(result.message)), classes: 'green'});
-							localStorage.removeItem('cart');
-							updateCartDisplay();
+											localStorage.removeItem('cart');
+											updateCartDisplay();
+										} else {
+											M.toast({html: decodeURIComponent(escape(result.message)) || 'Ошибка при оформлении заказа', classes: 'red'});
+										}
+									} catch (e) {
+										M.toast({html: 'Ошибка при обработке ответа сервера', classes: 'red'});
+									}
+								},
+								error: function() {
+									M.toast({html: 'Ошибка при отправке заказа', classes: 'red'});
+								}
+							});
 						} else {
-							M.toast({html: decodeURIComponent(escape(result.message)) || 'Ошибка при оформлении заказа', classes: 'red'});
+							M.toast({html: decodeURIComponent(escape(result.message)) || 'Ошибка при проверке товаров', classes: 'red'});
 						}
 					} catch (e) {
 						M.toast({html: 'Ошибка при обработке ответа сервера', classes: 'red'});
 					}
 				},
 				error: function() {
-					M.toast({html: 'Ошибка при отправке заказа', classes: 'red'});
+					M.toast({html: 'Ошибка при проверке товаров', classes: 'red'});
 				}
 			});
 		}
