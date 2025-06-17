@@ -155,7 +155,7 @@ $result = $conn->query($query);
 						<div class="col s2">
 							© "СпецАвтоПром", 2025
 							<br>
-							<a href="http://parts-soft.ru">Разработка sma8800@mail.ru</a>
+							<a href="http://parts-soft.ru">Разработка pashakaraul@mail.ru@mail.ru</a>
 						</div>
 						<div class="col s8">
 						</div>
