@@ -232,6 +232,53 @@ session_start();
 			}
 		}
 
+		let total = 0; // Делаем total глобальной переменной
+		
+		function updateCartDisplay() {
+			const cartItems = document.getElementById('cartItems');
+			const totalElement = document.getElementById('total');
+			const cart = JSON.parse(localStorage.getItem('cart')) || [];
+			total = 0; // Сбрасываем total перед подсчетом
+			
+			if (cart.length === 0) {
+				cartItems.innerHTML = '<p>Корзина пуста</p>';
+				totalElement.textContent = '0';
+				return;
+			}
+			
+			let html = '<table class="striped"><thead><tr><th>Товар</th><th>Цена</th><th>Количество</th><th>Сумма</th><th>Действия</th></tr></thead><tbody>';
+			
+			cart.forEach((item, index) => {
+				const itemTotal = item.price * item.quantity;
+				total += itemTotal;
+				html += `
+					<tr>
+						<td>${item.name}</td>
+						<td>${item.price} ₽</td>
+						<td>
+							<button onclick="updateQuantity(${index}, ${item.quantity - 1})" class="btn-flat btn-small">
+								<i class="material-icons">remove</i>
+							</button>
+							${item.quantity}
+							<button onclick="updateQuantity(${index}, ${item.quantity + 1})" class="btn-flat btn-small">
+								<i class="material-icons">add</i>
+							</button>
+						</td>
+						<td>${itemTotal} ₽</td>
+						<td>
+							<button onclick="removeFromCart(${index})" class="btn-flat btn-small red-text">
+								<i class="material-icons">delete</i>
+							</button>
+						</td>
+					</tr>
+				`;
+			});
+			
+			html += '</tbody></table>';
+			cartItems.innerHTML = html;
+			totalElement.textContent = total;
+		}
+
 		function placeOrder() {
 			if (total === 0) {
 				M.toast({html: 'Корзина пуста', classes: 'red'});
