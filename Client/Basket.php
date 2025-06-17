@@ -298,17 +298,30 @@ session_start();
 				M.toast({html: 'Корзина пуста', classes: 'red'});
 				return;
 			}
-			
+
+			// Проверяем наличие товаров в БД
 			$.ajax({
-				url: 'submit_order.php',
+				url: 'check_cart.php',
 				type: 'POST',
 				data: {
-					total: total
+					cart: JSON.stringify(cart)
 				},
 				success: function(response) {
 					try {
 						const result = JSON.parse(response);
 						if (result.success) {
+							// Если все товары в наличии, оформляем заказ
+							$.ajax({
+								url: 'submit_order.php',
+								type: 'POST',
+								data: {
+									total: total
+								},
+								success: function(response) {
+									try {
+										const result = JSON.parse(response);
+										if (result.success) {
+											M.toast({html: decodeURIComponent(escape(result.message)), classes: 'green'});
 							M.toast({html: decodeURIComponent(escape(result.message)), classes: 'green'});
 							localStorage.removeItem('cart');
 							updateCartDisplay();
