@@ -133,9 +133,9 @@ session_start();
             <center>
                 <div class="row">
                     <div class="col s12">
-                        <a href="submit_order.php?total=<?php echo $total; ?>" class="btn waves-effect waves-light indigo">
+                        <button onclick="placeOrder()" class="btn waves-effect waves-light indigo">
                             <i class="material-icons left">shopping_cart</i>Оформить заказ
-                        </a>
+                        </button>
                     </div>
                 </div>
                 <p><a class="indigo-text" href="#" onclick="clearCart()"><u>или очистить корзину</u></a></p>
@@ -230,6 +230,38 @@ session_start();
 					}
 				});
 			}
+		}
+
+		function placeOrder() {
+			if (total === 0) {
+				M.toast({html: 'Корзина пуста', classes: 'red'});
+				return;
+			}
+			
+			$.ajax({
+				url: 'submit_order.php',
+				type: 'POST',
+				data: {
+					total: total
+				},
+				success: function(response) {
+					try {
+						const result = JSON.parse(response);
+						if (result.success) {
+							M.toast({html: decodeURIComponent(escape(result.message)), classes: 'green'});
+							localStorage.removeItem('cart');
+							updateCartDisplay();
+						} else {
+							M.toast({html: decodeURIComponent(escape(result.message)) || 'Ошибка при оформлении заказа', classes: 'red'});
+						}
+					} catch (e) {
+						M.toast({html: 'Ошибка при обработке ответа сервера', classes: 'red'});
+					}
+				},
+				error: function() {
+					M.toast({html: 'Ошибка при отправке заказа', classes: 'red'});
+				}
+			});
 		}
 		</script>
 	</body>
