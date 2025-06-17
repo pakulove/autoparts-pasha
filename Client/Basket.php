@@ -131,9 +131,13 @@ session_start();
         <hr width="1000" color="#7986cb"><br>
         <?php if (isset($_SESSION['login']) && $_SESSION['type'] == 'client' && $result->num_rows > 0): ?>
             <center>
-                <a href="Orders.php" class="waves-effect waves-light btn-large indigo" style="width:270px">
-                    <i class="material-icons left">assignment_turned_in</i>Оформить заказ
-                </a>
+                <div class="row">
+                    <div class="col s12">
+                        <a href="submit_order.php?total=<?php echo $total; ?>" class="btn waves-effect waves-light indigo">
+                            <i class="material-icons left">shopping_cart</i>Оформить заказ
+                        </a>
+                    </div>
+                </div>
                 <p><a class="indigo-text" href="#" onclick="clearCart()"><u>или очистить корзину</u></a></p>
             </center>
         <?php endif; ?>
