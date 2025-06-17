@@ -236,14 +236,19 @@ session_start();
 		
 		// Вызываем updateCartDisplay при загрузке страницы
 		document.addEventListener('DOMContentLoaded', function() {
-			updateCartDisplay();
+			const cartItems = document.getElementById('cartItems');
+			if (cartItems) {
+				updateCartDisplay();
+			}
 		});
 		
 		function updateCartDisplay() {
 			const cartItems = document.getElementById('cartItems');
 			const totalElement = document.getElementById('total');
+			if (!cartItems || !totalElement) return;
+			
 			const cart = JSON.parse(localStorage.getItem('cart')) || [];
-			total = 0; // Сбрасываем total перед подсчетом
+			total = 0;
 			
 			if (cart.length === 0) {
 				cartItems.innerHTML = '<p>Корзина пуста</p>';
