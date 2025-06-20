@@ -1,6 +1,6 @@
 <?php
-ob_start();
 session_start();
+header('Content-Type: application/json');
 require '../db.php';
 
 if (!isset($_SESSION['login']) || $_SESSION['type'] != 'client') {
@@ -33,15 +33,18 @@ $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
     echo json_encode(['success' => false, 'message' => 'Товар уже в корзине']);
+    exit;
 } else {
     // Добавляем новый товар
     $query = "INSERT INTO cart (user_id, product_id) VALUES (?, ?)";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ii", $user_id, $product_id);
-    
+
     if ($stmt->execute()) {
         echo json_encode(['success' => true, 'message' => 'Товар добавлен в корзину']);
+        exit;
     } else {
         echo json_encode(['success' => false, 'message' => 'Ошибка при добавлении товара в корзину']);
+        exit;
     }
 } 

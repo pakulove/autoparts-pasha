@@ -1,4 +1,3 @@
-USE `Clients_db`;
 
 CREATE TABLE `clients` (
 	`id`		INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -24,7 +23,6 @@ INSERT INTO `clients` (`surname`, `name`, `patronymic`, `phone`,`email`,`address
     
     
 
-USE `Clients_db`;
 CREATE TABLE `autoparts` (
 	`id`				INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `name` 		VARCHAR(30),
@@ -47,25 +45,23 @@ INSERT INTO `autoparts` (`name`, `type`, `description`,`cost`) VALUES
 
 
 
-USE Clients_db;
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `login` varchar(30) NOT NULL,
-  `pass` varchar(30) NOT NULL,
+  `pass` varchar(30) NOT NULL,/*  */
   `type` varchar(30)	NOT NULL
  
 );
 
 INSERT INTO `users` (`login`, `pass`, `type`) VALUES ('Muhina', '57571', 'client');
 INSERT INTO `users` (`login`, `pass`, `type`) VALUES ('Imaikin', '57571', 'master');
-INSERT INTO `users` (`login`, `pass`, `type`) VALUES ('Fitisov', '57571', 'seller')
+INSERT INTO `users` (`login`, `pass`, `type`) VALUES ('Fitisov', '57571', 'seller');
 
 
 
 
 
-USE `Clients_db`;
 
 CREATE TABLE `cart` (
     `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
