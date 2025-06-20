@@ -1,13 +1,16 @@
 ﻿<?php
 require '../session_check.php';
 require '../db.php';
+require 'autoparts_db.php';
 
 // Проверяем авторизацию клиента
 checkAuth('client');
 
+// Получаем ID для поиска
+$search_id = isset($_GET['search_id']) && !empty($_GET['search_id']) ? (int)$_GET['search_id'] : null;
+
 // Получаем список автозапчастей
-$query = "SELECT * FROM autoparts ORDER BY name";
-$result = $conn->query($query);
+$autoparts = get_all($search_id);
 
 ?>
 <html>
@@ -58,18 +61,18 @@ $result = $conn->query($query);
         </header> 
         <hr color="#7986cb"><br>
 		<div class="container">
-			<form class="col s12">
+			<form class="col s12" method="GET" action="Catalog.php">
                 <div class="row">
 					<div class="col s1">
 					</div>
                     <div class="input-field col s7 ">
-						<i class="material-icons prefix">account_circle</i>
-                        <input placeholder="Поиск по артикулу(номеру детали)" id="icon_prefix" type="text" class="validate placeholder">
-                        <label for="icon_prefix">Артикул</label>
+						<i class="material-icons prefix">search</i>
+                        <input placeholder="Поиск по артикулу(номеру детали)" name="search_id" id="search_id" type="text" class="validate placeholder" value="<?php echo htmlspecialchars($search_id ?? ''); ?>">
+                        <label for="search_id">Артикул</label>
 						<span class="helper-text" data-error="wrong" data-success="right">Артикул должен состоять только из цифр</span>
 					</div>
 					<div class="col s3">
-						<center><a class="waves-effect waves-light btn-large indigo" style="width:270px"><i class="material-icons left">search</i>Найти</a></center>
+						<center><button type="submit" class="waves-effect waves-light btn-large indigo" style="width:270px"><i class="material-icons left">search</i>Найти</button></center>
 					</div>
 				</div>
 			</form>
@@ -94,9 +97,6 @@ $result = $conn->query($query);
 					</thead>
 					<tbody onclick='select_autopart(event)'>
 					  <?php 
-                    require 'autoparts_db.php';
-                    $autoparts = get_all();
-					
                      foreach ($autoparts as $autopart) {
                         echo "<tr id='autoparts-{$autopart['id']}'>
                             <td>{$autopart['id']}</td>

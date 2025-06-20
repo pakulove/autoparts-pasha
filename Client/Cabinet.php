@@ -11,13 +11,24 @@ require '../db.php';
 // Проверяем авторизацию клиента
 checkAuth('client');
 
+// Получаем ID для поиска
+$search_id = isset($_GET['search_id']) && !empty($_GET['search_id']) ? (int)$_GET['search_id'] : null;
+
 // Получаем заказы пользователя
-$query = "SELECT o.* FROM orders o 
+$sql = "SELECT o.* FROM orders o 
           JOIN users u ON o.user_id = u.id 
-          WHERE u.login = ? 
-          ORDER BY o.created_at DESC";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("s", $_SESSION['login']);
+          WHERE u.login = ?";
+$params = ["s", $_SESSION['login']];
+
+if ($search_id) {
+    $sql .= " AND o.id = ?";
+    $params[0] .= "i";
+    $params[] = $search_id;
+}
+
+$sql .= " ORDER BY o.created_at DESC";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param(...$params);
 $stmt->execute();
 $orders = $stmt->get_result();
 ?>
@@ -72,18 +83,18 @@ $orders = $stmt->get_result();
         </header> 
 		<hr width="1000" color="#7986cb"><br>
 		<div class="container">
-			<form class="col s12">
+			<form class="col s12" method="GET" action="Cabinet.php">
                 <div class="row">
 					<div class="col s1">
 					</div>
                     <div class="input-field col s7 ">
-						<i class="material-icons prefix">account_circle</i>
-                        <input placeholder="Поиск по номеру заказа" id="icon_prefix" type="text" class="validate placeholder">
-                        <label for="icon_prefix">Номер</label>
+						<i class="material-icons prefix">search</i>
+                        <input placeholder="Поиск по номеру заказа" name="search_id" id="search_id" type="text" class="validate placeholder" value="<?php echo htmlspecialchars($search_id ?? ''); ?>">
+                        <label for="search_id">Номер</label>
 						<span class="helper-text" data-error="wrong" data-success="right">Номер должен состоять только из цифр</span>
 					</div>
 					<div class="col s3">
-						<center><a class="waves-effect waves-light btn-large indigo" style="width:270px"><i class="material-icons left">search</i>Найти</a></center>
+						<center><button type="submit" class="waves-effect waves-light btn-large indigo" style="width:270px"><i class="material-icons left">search</i>Найти</button></center>
 					</div>
 				</div>
 			</form>
