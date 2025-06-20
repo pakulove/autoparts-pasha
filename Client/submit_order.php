@@ -94,11 +94,9 @@ try {
     error_log("Cart cleared for user: " . $user_id);
 
     $conn->commit();
-    echo json_encode([
-        'success' => true, 
-        'message' => 'Заказ успешно оформлен',
-        'order_id' => $order_id
-    ]);
+    $_SESSION['order_success'] = 'Заказ успешно оформлен!';
+    header('Location: Cabinet.php');
+    exit;
 } catch (Exception $e) {
     $conn->rollback();
     error_log("Ошибка при оформлении заказа: " . $e->getMessage());

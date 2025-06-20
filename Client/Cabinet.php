@@ -1,6 +1,10 @@
 ﻿<?php
 ob_start();
 session_start();
+if (isset($_SESSION['order_success'])) {
+    echo "<script>document.addEventListener('DOMContentLoaded', function() { M.toast({html: '" . $_SESSION['order_success'] . "', classes: 'green'}); });</script>";
+    unset($_SESSION['order_success']);
+}
 require '../session_check.php';
 require '../db.php';
 
