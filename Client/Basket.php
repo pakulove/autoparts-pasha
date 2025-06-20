@@ -133,9 +133,11 @@ session_start();
             <center>
                 <div class="row">
                     <div class="col s12">
-                        <button onclick="placeOrder()" class="btn waves-effect waves-light indigo">
-                            <i class="material-icons left">shopping_cart</i>Оформить заказ
-                        </button>
+                        <form action="submit_order.php" method="POST">
+                            <button type="submit" class="btn waves-effect waves-light indigo">
+                                <i class="material-icons left">shopping_cart</i>Оформить заказ
+                            </button>
+                        </form>
                     </div>
                 </div>
                 <p><a class="indigo-text" href="#" onclick="clearCart()"><u>или очистить корзину</u></a></p>
@@ -180,24 +182,6 @@ session_start();
 			</div>
 		</footer>
 		<script>
-		function updateQuantity(cartId, change) {
-			fetch('update_cart.php', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: 'id=' + cartId + '&change=' + change
-			})
-			.then(response => response.json())
-			.then(data => {
-				if (data.success) {
-					location.reload();
-				} else {
-					M.toast({html: data.message, classes: 'red'});
-				}
-			});
-		}
-
 		function removeFromCart(cartId) {
 			fetch('remove_from_cart.php', {
 				method: 'POST',
@@ -230,122 +214,6 @@ session_start();
 					}
 				});
 			}
-		}
-
-		let total = 0;
-		
-		// Вызываем updateCartDisplay при загрузке страницы
-		document.addEventListener('DOMContentLoaded', function() {
-			const cartItems = document.getElementById('cartItems');
-			if (cartItems) {
-				updateCartDisplay();
-			}
-		});
-		
-		function updateCartDisplay() {
-			const cartItems = document.getElementById('cartItems');
-			const totalElement = document.getElementById('total');
-			if (!cartItems || !totalElement) return;
-			
-			const cart = JSON.parse(localStorage.getItem('cart')) || [];
-			total = 0;
-			
-			if (cart.length === 0) {
-				cartItems.innerHTML = '<p>Корзина пуста</p>';
-				totalElement.textContent = '0';
-				return;
-			}
-			
-			let html = '<table class="striped"><thead><tr><th>Товар</th><th>Цена</th><th>Количество</th><th>Сумма</th><th>Действия</th></tr></thead><tbody>';
-			
-			cart.forEach((item, index) => {
-				const itemTotal = item.price * item.quantity;
-				total += itemTotal;
-				html += `
-					<tr>
-						<td>${item.name}</td>
-						<td>${item.price} ₽</td>
-						<td>
-							<button onclick="updateQuantity(${index}, ${item.quantity - 1})" class="btn-flat btn-small">
-								<i class="material-icons">remove</i>
-							</button>
-							${item.quantity}
-							<button onclick="updateQuantity(${index}, ${item.quantity + 1})" class="btn-flat btn-small">
-								<i class="material-icons">add</i>
-							</button>
-						</td>
-						<td>${itemTotal} ₽</td>
-						<td>
-							<button onclick="removeFromCart(${index})" class="btn-flat btn-small red-text">
-								<i class="material-icons">delete</i>
-							</button>
-						</td>
-					</tr>
-				`;
-			});
-			
-			html += '</tbody></table>';
-			cartItems.innerHTML = html;
-			totalElement.textContent = total;
-		}
-
-		function placeOrder() {
-			const cart = JSON.parse(localStorage.getItem('cart')) || [];
-			console.log('Cart contents:', cart);
-			console.log('Total value:', total);
-			
-			if (!cart || cart.length === 0) {
-				M.toast({html: 'Корзина пуста', classes: 'red'});
-				return;
-			}
-
-			// Проверяем наличие товаров в БД
-			$.ajax({
-				url: 'check_cart.php',
-				type: 'POST',
-				data: {
-					cart: JSON.stringify(cart)
-				},
-				success: function(response) {
-					try {
-						const result = JSON.parse(response);
-						if (result.success) {
-							// Если все товары в наличии, оформляем заказ
-							$.ajax({
-								url: 'submit_order.php',
-								type: 'POST',
-								data: {
-									total: total
-								},
-								success: function(response) {
-									try {
-										const result = JSON.parse(response);
-										if (result.success) {
-											M.toast({html: decodeURIComponent(escape(result.message)), classes: 'green'});
-											localStorage.removeItem('cart');
-											updateCartDisplay();
-										} else {
-											M.toast({html: decodeURIComponent(escape(result.message)) || 'Ошибка при оформлении заказа', classes: 'red'});
-										}
-									} catch (e) {
-										M.toast({html: 'Ошибка при обработке ответа сервера', classes: 'red'});
-									}
-								},
-								error: function() {
-									M.toast({html: 'Ошибка при отправке заказа', classes: 'red'});
-								}
-							});
-						} else {
-							M.toast({html: decodeURIComponent(escape(result.message)) || 'Ошибка при проверке товаров', classes: 'red'});
-						}
-					} catch (e) {
-						M.toast({html: 'Ошибка при обработке ответа сервера', classes: 'red'});
-					}
-				},
-				error: function() {
-					M.toast({html: 'Ошибка при проверке товаров', classes: 'red'});
-				}
-			});
 		}
 		</script>
 	</body>
