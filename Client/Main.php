@@ -44,7 +44,7 @@ if (!isset($_SESSION['login']) || $_SESSION['type'] !== 'client') {
                     <br><br><h5 class="white-text"><img src="../img/images.jpe" width="372"></h5>
                 </div>
                 <div class="col s8">
-                    <br><br><font color="#9fa8da "><center><h2>Главная страница</h2></center></font>
+                    <br><br><font color="#9fa8da "><center><h2>Личный кабинет</h2></center></font>
                 </div>
                 <div class="col s2">
                     <p><h5>+7 (495) <b>743-45-91</b></h5> 
